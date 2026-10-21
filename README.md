@@ -7,9 +7,9 @@
 一个基于 **PyQt5 + NumPy + OpenCV** 的桌面端数字图像处理教学与演示工具，同时提供**纯网页版**（双击即用，无需安装）。
 定位是「算法实验室」而非「迷你 Photoshop」——所有经典 DSP 算法一键调用、参数实时可调、支持算法对比和报告图导出，适合课程作业、算法学习和论文实验。
 
-![界面截图1](docs/screenshot1.jpg)
+![界面截图1](docs/screenshot1.jpg?v=2)
 
-![界面截图2](docs/screenshot2.jpg)
+![界面截图2](docs/screenshot2.jpg?v=2)
 
 ## 两种使用方式
 
