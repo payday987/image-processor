@@ -20,7 +20,8 @@ python main.py
 ```
 
 ### 🌐 网页版（免安装，打开即用）
-直接用浏览器打开 [`web/index.html`](web/index.html)，所有处理在本地完成，不上传任何图片。
+**👉 [点此直接使用](https://payday987.github.io/image-processor/)**（GitHub Pages 部署，所有处理在本地完成，不上传任何图片）
+也可以克隆仓库后用浏览器打开 [`web/index.html`](web/index.html)。
 包含：灰度化、反色、二值化、亮度/对比度实时调整、高斯模糊、Sobel 边缘、保存图片。
 
 ## 功能一览
