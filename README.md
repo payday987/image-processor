@@ -20,8 +20,10 @@ python main.py
 ```
 
 ### 🌐 网页版（免安装，打开即用）
-克隆仓库后用浏览器打开 [`web/index.html`](web/index.html)，所有处理在本地完成，不上传任何图片。
+**👉 [点此直接在浏览器中使用](https://htmlpreview.github.io/?https://github.com/payday987/image-processor/blob/main/web/index.html)**
+所有处理在本地浏览器完成，不上传任何图片。
 包含：灰度化、反色、二值化、亮度/对比度实时调整、高斯模糊、Sobel 边缘、保存图片。
+（也可以克隆仓库后直接打开 `web/index.html`）
 
 ## 功能一览
 
