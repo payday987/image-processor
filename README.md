@@ -4,10 +4,22 @@
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
-一个基于 **PyQt5 + NumPy + OpenCV** 的桌面端数字图像处理教学与演示工具。
+一个基于 **PyQt5 + NumPy + OpenCV** 的桌面端数字图像处理教学与演示工具，同时提供**纯网页版**（双击即用，无需安装）。
 定位是「算法实验室」而非「迷你 Photoshop」——所有经典 DSP 算法一键调用、参数实时可调、支持算法对比和报告图导出，适合课程作业、算法学习和论文实验。
 
-![screenshot](docs/screenshot.png)
+![界面截图](docs/screenshot1.jpg)
+
+## 两种使用方式
+
+### 🖥️ 桌面版（功能完整）
+```bash
+pip install -r requirements.txt
+python main.py
+```
+
+### 🌐 网页版（免安装，打开即用）
+直接用浏览器打开 [`web/index.html`](web/index.html)，所有处理在本地完成，不上传任何图片。
+包含：灰度化、反色、二值化、亮度/对比度实时调整、高斯模糊、Sobel 边缘、保存图片。
 
 ## 功能一览
 

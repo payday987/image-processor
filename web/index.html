@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>数字图像处理实验室 - Web版</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f5f5f7; color: #1d1d1f; }
+  header { background: #1d1d1f; color: #fff; padding: 16px 24px; }
+  header h1 { font-size: 20px; font-weight: 600; }
+  header p { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+  .container { display: flex; gap: 16px; padding: 16px; max-width: 1400px; margin: 0 auto; }
+  .toolbar { width: 220px; background: #fff; border-radius: 10px; padding: 16px; height: fit-content; }
+  .toolbar h3 { font-size: 13px; color: #86868b; margin-bottom: 10px; text-transform: uppercase; }
+  .toolbar button { display: block; width: 100%; margin: 4px 0; padding: 8px 12px; background: #f5f5f7; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; text-align: left; }
+  .toolbar button:hover { background: #e8e8ed; }
+  .toolbar button:active { background: #d8d8de; }
+  .toolbar hr { border: none; border-top: 1px solid #e8e8ed; margin: 12px 0; }
+  .slider-row { margin: 10px 0; font-size: 12px; }
+  .slider-row label { display: flex; justify-content: space-between; margin-bottom: 4px; color: #555; }
+  .slider-row input[type=range] { width: 100%; }
+  .canvas-area { flex: 1; background: #fff; border-radius: 10px; padding: 16px; display: flex; align-items: center; justify-content: center; min-height: 600px; position: relative; }
+  #canvas { max-width: 100%; max-height: 75vh; background: #2b2b2b; border-radius: 6px; }
+  .placeholder { color: #aaa; font-size: 16px; }
+  .actions { margin-top: 12px; display: flex; gap: 8px; }
+  .actions button { flex: 1; padding: 10px; background: #0071e3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .actions button.secondary { background: #e8e8ed; color: #1d1d1f; }
+  input[type=file] { display: none; }
+  .badge { display: inline-block; background: #34c759; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>数字图像处理实验室 <span class="badge">Web 版</span></h1>
+  <p>纯前端实现，打开即用，无需安装任何环境</p>
+</header>
+
+<div class="container">
+  <div class="toolbar">
+    <h3>文件</h3>
+    <button onclick="document.getElementById('fileInput').click()">📂 打开图片</button>
+    <button onclick="saveImage()">💾 保存图片</button>
+    <input type="file" id="fileInput" accept="image/*">
+
+    <hr>
+    <h3>点处理</h3>
+    <button onclick="applyGray()">灰度化</button>
+    <button onclick="applyInvert()">反色</button>
+    <button onclick="applyBinary()">二值化</button>
+
+    <hr>
+    <h3>增强（实时预览）</h3>
+    <div class="slider-row">
+      <label>亮度 <span id="brightVal">0</span></label>
+      <input type="range" id="bright" min="-100" max="100" value="0" oninput="applyPreview()">
+    </div>
+    <div class="slider-row">
+      <label>对比度 <span id="contrastVal">100</span>%</label>
+      <input type="range" id="contrast" min="0" max="300" value="100" oninput="applyPreview()">
+    </div>
+
+    <hr>
+    <h3>滤波与边缘</h3>
+    <button onclick="applyBlur()">高斯模糊</button>
+    <button onclick="applySobel()">Sobel 边缘</button>
+
+    <hr>
+    <div class="actions">
+      <button class="secondary" onclick="resetImage()">重置</button>
+    </div>
+  </div>
+
+  <div class="canvas-area">
+    <div class="placeholder" id="placeholder">👈 点击左侧「打开图片」开始</div>
+    <canvas id="canvas" style="display:none"></canvas>
+  </div>
+</div>
+
+<script>
+let original = null;  // 原始ImageData
+let current = null;   // 当前ImageData
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.getElementById('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    original = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    current = new ImageData(new Uint8ClampedArray(original.data), original.width, original.height);
+    document.getElementById('placeholder').style.display = 'none';
+    canvas.style.display = 'block';
+  };
+  img.src = URL.createObjectURL(file);
+});
+
+function render() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.putImageData(current, 0, 0);
+}
+
+function applyPreview() {
+  if (!original) return;
+  const bright = parseInt(document.getElementById('bright').value);
+  const contrast = parseInt(document.getElementById('contrast').value) / 100;
+  document.getElementById('brightVal').textContent = bright;
+  document.getElementById('contrastVal').textContent = Math.round(contrast * 100);
+
+  const out = new ImageData(new Uint8ClampedArray(original.data), original.width, original.height);
+  const d = out.data;
+  for (let i = 0; i < d.length; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      let v = d[i + c] - 128;
+      v = v * contrast + 128 + bright;
+      d[i + c] = Math.max(0, Math.min(255, v));
+    }
+  }
+  current = out;
+  render();
+}
+
+function applyGray() {
+  if (!current) return;
+  const d = current.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const g = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+    d[i] = d[i+1] = d[i+2] = g;
+  }
+  render();
+}
+
+function applyInvert() {
+  if (!current) return;
+  const d = current.data;
+  for (let i = 0; i < d.length; i += 4) {
+    d[i] = 255 - d[i];
+    d[i+1] = 255 - d[i+1];
+    d[i+2] = 255 - d[i+2];
+  }
+  render();
+}
+
+function applyBinary() {
+  if (!current) return;
+  const d = current.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const g = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+    const v = g >= 128 ? 255 : 0;
+    d[i] = d[i+1] = d[i+2] = v;
+  }
+  render();
+}
+
+function applyBlur() {
+  if (!current) return;
+  // 简单3x3均值模糊
+  const src = current;
+  const out = new ImageData(new Uint8ClampedArray(src.data), src.width, src.height);
+  const sd = src.data, od = out.data;
+  for (let y = 1; y < src.height - 1; y++) {
+    for (let x = 1; x < src.width - 1; x++) {
+      for (let c = 0; c < 3; c++) {
+        let sum = 0;
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++)
+            sum += sd[((y+dy)*src.width + (x+dx))*4 + c];
+        od[(y*src.width + x)*4 + c] = sum / 9;
+      }
+    }
+  }
+  current = out;
+  render();
+}
+
+function applySobel() {
+  if (!current) return;
+  const w = current.width, h = current.height;
+  const gray = new Float32Array(w * h);
+  const d = current.data;
+  for (let i = 0; i < w*h; i++) {
+    gray[i] = 0.299*d[i*4] + 0.587*d[i*4+1] + 0.114*d[i*4+2];
+  }
+  const out = new ImageData(new Uint8ClampedArray(current.data), w, h);
+  const od = out.data;
+  for (let y = 1; y < h-1; y++) {
+    for (let x = 1; x < w-1; x++) {
+      const gx = -gray[(y-1)*w+(x-1)] - 2*gray[y*w+(x-1)] - gray[(y+1)*w+(x-1)]
+                + gray[(y-1)*w+(x+1)] + 2*gray[y*w+(x+1)] + gray[(y+1)*w+(x+1)];
+      const gy = -gray[(y-1)*w+(x-1)] - 2*gray[(y-1)*w+x] - gray[(y-1)*w+(x+1)]
+                + gray[(y+1)*w+(x-1)] + 2*gray[(y+1)*w+x] + gray[(y+1)*w+(x+1)];
+      const mag = Math.min(255, Math.sqrt(gx*gx + gy*gy));
+      const idx = (y*w+x)*4;
+      od[idx] = od[idx+1] = od[idx+2] = mag;
+    }
+  }
+  current = out;
+  render();
+}
+
+function resetImage() {
+  if (!original) return;
+  current = new ImageData(new Uint8ClampedArray(original.data), original.width, original.height);
+  document.getElementById('bright').value = 0;
+  document.getElementById('contrast').value = 100;
+  render();
+}
+
+function saveImage() {
+  if (!current) return;
+  const canvas = document.getElementById('canvas');
+  const a = document.createElement('a');
+  a.download = 'processed.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+</script>
+
+</body>
+</html>
